@@ -52,7 +52,7 @@ const UserMessage = ({ content }: Pick<MessageCardProps, 'content'>) => {
     return (
         <div className="flex justify-end pb-4 pr-2 pl-10">
             <Card className="bg-muted rounded-lg p-3 shadow-none border-none max-w-[80%] break-words">
-                content={content}
+                {content}
             </Card>
         </div>
     );
