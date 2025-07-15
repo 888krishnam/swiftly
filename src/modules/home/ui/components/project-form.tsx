@@ -12,7 +12,7 @@ import { useTRPC } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { toast } from "sonner";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { PROJECT_TEMPLATES } from "@/constants/project_templates";
 
 const formSchema = z.object({
