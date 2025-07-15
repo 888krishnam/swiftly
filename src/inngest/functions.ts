@@ -2,7 +2,7 @@ import { gemini, createAgent, createTool, createNetwork, type Tool } from "@inng
 import { Sandbox } from "@e2b/code-interpreter";
 import { inngest } from "./client";
 import { getSandbox, lastAiMessage } from "./utils";
-import { PROMPT } from "@/prompt";
+import { PROMPT } from "@/constants/prompt";
 import { z } from "zod";
 import prisma from "@/lib/db";
 
