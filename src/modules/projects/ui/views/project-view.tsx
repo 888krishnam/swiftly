@@ -12,6 +12,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import FileExplorer from "@/components/file-explorer";
 import UserControl from "@/components/user-control";
+import { SignedIn, useAuth } from "@clerk/nextjs";
+import { CreditsInNavbar } from "../components/usage";
 
 interface Props {
     projectId: string;
@@ -20,6 +22,8 @@ interface Props {
 export const ProjectView = ({ projectId }: Props) => {
     const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
     const [tabState, setTabState] = useState<"preview" | "code">("preview");
+    const { has } = useAuth();
+    const isOnFreePlan = has?.({ plan: "free_user" });
 
     return (
         <div className="h-screen"> 
@@ -66,12 +70,17 @@ export const ProjectView = ({ projectId }: Props) => {
                         </TabsList>
 
                         <div className="ml-auto flex items-center gap-x-4">
-                            <Button asChild size="sm" variant="tertiary">
-                                <Link href={"/pricing"}>
-                                    <CrownIcon /> Upgrade
-                                </Link>
-                            </Button>
-                            <UserControl />
+                            <CreditsInNavbar />
+                            {isOnFreePlan && (
+                                <Button asChild size="sm" variant={"default"}>
+                                    <Link href={"/pricing"}>
+                                        <CrownIcon /> Upgrade
+                                    </Link>
+                                </Button>
+                            )}
+                            <SignedIn>
+                                <UserControl  />
+                            </SignedIn>
                         </div>
                     </div>
                     <TabsContent value="preview">

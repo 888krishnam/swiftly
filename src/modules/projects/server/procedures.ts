@@ -1,29 +1,30 @@
 import { inngest } from "@/inngest/client";
 import prisma from "@/lib/db";
+import { consumeCredits } from "@/lib/usage";
 import { protectedProcedure, createTRPCRouter } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { generateSlug } from "random-word-slugs";
-import {z} from "zod";
+import { z } from "zod";
 
 export const projectsRouter = createTRPCRouter({
     getOne: protectedProcedure
-    .input(z.object({
-        id: z.string().min(1, { message: "Project ID is required" }),
-    }))
-    .query(async ({ input, ctx }) => {
-        const existingProjects = await prisma.project.findUnique({
-            where: {
-                id: input.id,
-                userId: ctx.auth.userId,
-            },
-        });
+        .input(z.object({
+            id: z.string().min(1, { message: "Project ID is required" }),
+        }))
+        .query(async ({ input, ctx }) => {
+            const existingProjects = await prisma.project.findUnique({
+                where: {
+                    id: input.id,
+                    userId: ctx.auth.userId,
+                },
+            });
 
-        if (!existingProjects) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
-        }
+            if (!existingProjects) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
+            }
 
-        return existingProjects;
-    }),
+            return existingProjects;
+        }),
     getMany: protectedProcedure.query(async ({ ctx }) => {
         const projects = await prisma.project.findMany({
             where: {
@@ -39,11 +40,27 @@ export const projectsRouter = createTRPCRouter({
         .input(
             z.object({
                 value: z.string()
-                .min(1, { message: "Prompt is required" })
-                .max(5000, { message: "Prompt is too long" }),
+                    .min(1, { message: "Prompt is required" })
+                    .max(5000, { message: "Prompt is too long" }),
             }),
         )
         .mutation(async ({ input, ctx }) => {
+            try {
+                await consumeCredits();
+            } catch (error) {
+                if (error instanceof Error) {
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: "Something went wrong",
+                    });
+                }
+                else {
+                    throw new TRPCError({
+                        code: "TOO_MANY_REQUESTS",
+                        message: "You have exceeded your usage limit.",
+                    });
+                }
+            }
             const createdProject = await prisma.project.create({
                 data: {
                     userId: ctx.auth.userId,
@@ -67,6 +84,6 @@ export const projectsRouter = createTRPCRouter({
                     projectId: createdProject.id,
                 }
             });
-        return createdProject;
-    }),
+            return createdProject;
+        }),
 })
