@@ -29,6 +29,7 @@ export const codeAgentFunction = inngest.createFunction(
         orderBy: {
           createdAt: "desc",
         },
+        take: 5,
       });
       for (const message of messages) {
         formattedMessages.push({
@@ -37,7 +38,7 @@ export const codeAgentFunction = inngest.createFunction(
           content: message.content,
         });
       }
-      return formattedMessages;
+      return formattedMessages.reverse();
     });
 
     const state = createState<AgentState>(
@@ -203,6 +204,7 @@ export const codeAgentFunction = inngest.createFunction(
       return `http://${host}`;
     });
 
+    // Save the assistant’s message + fragment record
     await step.run("save-result", async () => {
       if (isError) {
         return await prisma.message.create({
@@ -229,6 +231,13 @@ export const codeAgentFunction = inngest.createFunction(
             }
           },
         },
+      });
+    });
+
+    await step.run("update-project-name", async () => {
+      await prisma.project.update({
+        where: { id: event.data.projectId },
+        data: { name: parseAgentOutput(fragmentTitleOutput) },
       });
     });
 
