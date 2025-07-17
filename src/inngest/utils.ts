@@ -1,5 +1,5 @@
 import { Sandbox } from "@e2b/code-interpreter";
-import { AgentResult, TextMessage } from "@inngest/agent-kit";
+import { AgentResult, Message, TextMessage } from "@inngest/agent-kit";
 
 export async function getSandbox(sandboxId: string) {
   const sandbox = await Sandbox.connect(sandboxId);
@@ -19,4 +19,16 @@ export function lastAiMessage(result: AgentResult) {
     ? message.content
     : message.content.map((m) => m.text).join("")
   : undefined;
+};
+
+export const parseAgentOutput = (value: Message[]) => {
+  const output = value[0];
+  
+  if (output.type !== "text") return "Fragment";
+
+  if (Array.isArray(output.content)) {
+    return output.content.map((txt) => txt).join(" ");
+  }
+
+  return output.content;
 };
